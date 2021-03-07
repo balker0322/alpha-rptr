@@ -52,7 +52,7 @@ class Doten(Bot):
 # SMA CrossOver
 class SMA(Bot):
     def __init__(self):
-        Bot.__init__(self, '1m')
+        Bot.__init__(self, '15m')
 
     def options(self):
         return {
