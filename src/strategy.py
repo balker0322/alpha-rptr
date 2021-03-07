@@ -21,6 +21,13 @@ from src.bot import Bot
 # Channel breakout strategy
 from src.gmail_sub import GmailSub
 
+def get_calc_lot(lot, decimal_num:int, leverage:float, actual_leverage:float):
+    calc_lot = lot / leverage
+    calc_lot *= actual_leverage
+    calc_lot -= calc_lot%(10**-decimal_num)
+    calc_lot = round(calc_lot, decimal_num)
+    return calc_lot
+
 
 class Doten(Bot):
     def __init__(self):
@@ -45,7 +52,7 @@ class Doten(Bot):
 # SMA CrossOver
 class SMA(Bot):
     def __init__(self):
-        Bot.__init__(self, '2h')
+        Bot.__init__(self, '1m')
 
     def options(self):
         return {
@@ -55,8 +62,11 @@ class SMA(Bot):
 
     def strategy(self, open, close, high, low, volume):
         lot = self.exchange.get_lot()
+        lot = get_calc_lot(lot=lot, decimal_num=3, leverage=20.0, actual_leverage=3.0)
         fast_len = self.input('fast_len', int, 9)
         slow_len = self.input('slow_len', int, 16)
+        print('print(len(close)): ', len(close))
+        print('print(len(self.exchange.data.close)): ', len(self.exchange.data.close))
         fast_sma = sma(close, fast_len)
         slow_sma = sma(close, slow_len)
         golden_cross = crossover(fast_sma, slow_sma)
@@ -65,6 +75,19 @@ class SMA(Bot):
             self.exchange.entry("Long", True, lot)
         if dead_cross:
             self.exchange.entry("Short", False, lot)
+
+        # OHLCV and indicator data, you can access history using list index        
+        # log indicator values 
+        print()
+        logger.info(f"fast_sma: {fast_sma[-1]}")
+        logger.info(f"slow_sma: {slow_sma[-1]}")
+        # log last candle OHLCV values
+        logger.info(f"open: {open[-1]}")
+        logger.info(f"high: {high[-1]}")
+        logger.info(f"low: {low[-1]}")
+        logger.info(f"close: {close[-1]}")
+        logger.info(f"volume: {volume[-1]}")
+        #second last candle OHLCV values
 
 
 # Rci

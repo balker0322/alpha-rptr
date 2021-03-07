@@ -808,7 +808,8 @@ class BinanceFutures:
     def __update_ohlcv(self, action, new_data):
         """
         get OHLCV data and execute the strategy
-        """        
+        """    
+
         if self.data is None:
             end_time = datetime.now(timezone.utc)
             start_time = end_time - self.ohlcv_len * delta(self.bin_size)
@@ -824,7 +825,7 @@ class BinanceFutures:
                 self.data = d1
                 
         else:
-            self.data = pd.concat([self.data, new_data])            
+            self.data = pd.concat([self.data, new_data])  
 
         # exclude current candle data 
         re_sample_data = resample(self.data, self.bin_size)[:-1]
@@ -834,7 +835,10 @@ class BinanceFutures:
 
         if self.last_action_time is not None and \
                 self.last_action_time == re_sample_data.iloc[-1].name:
+            self.data = self.data.iloc[:-1,] # remove latest data
             return
+        
+        self.data = self.data.iloc[1:,] # remove oldest data
 
         open = re_sample_data['open'].values
         close = re_sample_data['close'].values
