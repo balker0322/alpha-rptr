@@ -52,7 +52,7 @@ class Doten(Bot):
 # SMA CrossOver
 class SMA(Bot):
     def __init__(self):
-        Bot.__init__(self, '15m')
+        Bot.__init__(self, '1m')
 
     def options(self):
         return {
@@ -67,24 +67,26 @@ class SMA(Bot):
         slow_len = self.input('slow_len', int, 16)
         fast_sma = sma(close, fast_len)
         slow_sma = sma(close, slow_len)
-        golden_cross = crossover(fast_sma, slow_sma)
-        dead_cross = crossunder(fast_sma, slow_sma)
+        # golden_cross = crossover(fast_sma, slow_sma)
+        # dead_cross = crossunder(fast_sma, slow_sma)
+        inc_trend = fast_sma[-1] > slow_sma[-1]
+        dec_trend = fast_sma[-1] < slow_sma[-1]
 
-        if golden_cross:
-            print('golden_cross detected')
+        if inc_trend:
+            print('inc_trend detected')
             while True:
                 print('trying to open long position...')
                 self.exchange.entry("Long", True, lot)
-                if float(self.exchange.get_position()['notional'] > 0.0): # check if in long position
+                if float(self.exchange.get_position()['notional']) > 0.0: # check if in long position
                     print('long position opened')
                     break
 
-        if dead_cross:
-            print('dead_cross detected')
+        if dec_trend:
+            print('dec_trend detected')
             while True:
                 print('trying to open short position...')
                 self.exchange.entry("Short", False, lot)
-                if float(self.exchange.get_position()['notional'] < 0.0): # check if in short position
+                if float(self.exchange.get_position()['notional']) < 0.0: # check if in short position
                     print('short position opened')
                     break
 
