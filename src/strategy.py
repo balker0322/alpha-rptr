@@ -52,7 +52,7 @@ class Doten(Bot):
 # SMA CrossOver
 class SMA(Bot):
     def __init__(self):
-        Bot.__init__(self, '15m')
+        Bot.__init__(self, '1m')
 
     def options(self):
         return {
@@ -62,7 +62,7 @@ class SMA(Bot):
 
     def strategy(self, open, close, high, low, volume):
         lot = self.exchange.get_lot()
-        lot = get_calc_lot(lot=lot, decimal_num=3, leverage=20.0, actual_leverage=3.0)
+        lot = get_calc_lot(lot=lot, decimal_num=0, leverage=20.0, actual_leverage=3.0)
         fast_len = self.input('fast_len', int, 9)
         slow_len = self.input('slow_len', int, 16)
         fast_sma = sma(close, fast_len)
@@ -75,20 +75,20 @@ class SMA(Bot):
         if inc_trend:
             print('inc_trend detected')
             while True:
-                print('trying to open long position...')
-                self.exchange.entry("Long", True, lot)
                 if float(self.exchange.get_position()['notional']) > 0.0: # check if in long position
                     print('long position opened')
                     break
+                print('trying to open long position...')
+                self.exchange.entry("Long", True, lot)
 
         if dec_trend:
             print('dec_trend detected')
             while True:
-                print('trying to open short position...')
-                self.exchange.entry("Short", False, lot)
                 if float(self.exchange.get_position()['notional']) < 0.0: # check if in short position
                     print('short position opened')
                     break
+                print('trying to open short position...')
+                self.exchange.entry("Short", False, lot)
 
 
         # OHLCV and indicator data, you can access history using list index        
