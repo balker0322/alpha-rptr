@@ -373,8 +373,8 @@ class Sample(Bot):
 class SMA2(Bot):
     decimal_num = 3
     price_decimal_num = 2
-    rr_ratio = 2.0
-    risk = 0.5
+    rr_ratio = 1.5
+    risk = 0.1
     
     def __init__(self):
         Bot.__init__(self, '1m')
@@ -395,7 +395,7 @@ class SMA2(Bot):
         reward = self.risk*self.rr_ratio
         self.exchange.sltp(profit_long=reward, profit_short=reward, stop_long=self.risk, stop_short=self.risk, round_decimals=self.price_decimal_num)
 
-        if inc_trend:
+        if inc_trend and float(self.exchange.get_position()['notional']) == 0.0:
             print('inc_trend detected')
             while True:
                 if float(self.exchange.get_position()['notional']) > 0.0: # check if in long position
@@ -404,7 +404,7 @@ class SMA2(Bot):
                 print('trying to open long position...')
                 self.exchange.entry("Long", True, lot)
 
-        if dec_trend:
+        if dec_trend and float(self.exchange.get_position()['notional']) == 0.0:
             print('dec_trend detected')
             while True:
                 if float(self.exchange.get_position()['notional']) < 0.0: # check if in short position

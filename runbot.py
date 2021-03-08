@@ -6,7 +6,7 @@ import time
 import src.strategy as strategy
 
 if __name__ == "__main__":
-    cls = getattr(strategy, 'SMA')
+    cls = getattr(strategy, 'SMA2')
     bot = cls()
     bot.test_net  = False
     bot.back_test = False
