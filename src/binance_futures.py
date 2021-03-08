@@ -827,6 +827,7 @@ class BinanceFutures:
         else:
             self.data = pd.concat([self.data, new_data])  
 
+        '''
         # exclude current candle data 
         re_sample_data = resample(self.data, self.bin_size)[:-1]
        
@@ -835,10 +836,15 @@ class BinanceFutures:
 
         if self.last_action_time is not None and \
                 self.last_action_time == re_sample_data.iloc[-1].name:
-            self.data = self.data.iloc[:-1,] # remove latest data
             return
-        
-        self.data = self.data.iloc[1:,] # remove oldest data
+        '''
+
+        # experiment
+        re_sample_data = resample(self.data, self.bin_size)
+        self.data = re_sample_data.iloc[-1 * self.ohlcv_len:, :]
+        if self.last_action_time is not None and \
+                self.last_action_time == re_sample_data.iloc[-1].name:
+            return
 
         open = re_sample_data['open'].values
         close = re_sample_data['close'].values

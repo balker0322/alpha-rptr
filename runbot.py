@@ -14,7 +14,7 @@ if __name__ == "__main__":
     bot.hyperopt  = False
     bot.account = 'binanceaccount2'
     bot.exchange_arg = 'binance'
-    bot.pair = 'ADAUSDT'
+    bot.pair = 'ETHUSDT'
     bot.run()
 
     signal.signal(signal.SIGINT, lambda x, y: bot.stop())

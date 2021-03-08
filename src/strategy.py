@@ -52,7 +52,7 @@ class Doten(Bot):
 # SMA CrossOver
 class SMA(Bot):
     def __init__(self):
-        Bot.__init__(self, '1m')
+        Bot.__init__(self, '15m')
 
     def options(self):
         return {
@@ -62,7 +62,7 @@ class SMA(Bot):
 
     def strategy(self, open, close, high, low, volume):
         lot = self.exchange.get_lot()
-        lot = get_calc_lot(lot=lot, decimal_num=0, leverage=20.0, actual_leverage=3.0)
+        lot = get_calc_lot(lot=lot, decimal_num=3, leverage=20.0, actual_leverage=3.0)
         fast_len = self.input('fast_len', int, 9)
         slow_len = self.input('slow_len', int, 16)
         fast_sma = sma(close, fast_len)
@@ -367,4 +367,63 @@ class Sample(Bot):
         # log history entry signals
         logger.info(f"long_entry_hist: {self.long_entry_signal_history}")
         logger.info(f"short_entry_hist: {self.short_entry_signal_history}")
+
+
+# SMA CrossOver
+class SMA2(Bot):
+    decimal_num = 3
+    price_decimal_num = 2
+    rr_ratio = 2.0
+    risk = 0.5
+    
+    def __init__(self):
+        Bot.__init__(self, '1m')
+
+    def strategy(self, open, close, high, low, volume):
+        
+        lot = self.exchange.get_lot()
+        lot = get_calc_lot(lot=lot, decimal_num=self.decimal_num, leverage=20.0, actual_leverage=3.0)
+        fast_len = self.input('fast_len', int, 9)
+        slow_len = self.input('slow_len', int, 16)
+        fast_sma = sma(close, fast_len)
+        slow_sma = sma(close, slow_len)
+        # golden_cross = crossover(fast_sma, slow_sma)
+        # dead_cross = crossunder(fast_sma, slow_sma)
+        inc_trend = fast_sma[-1] > slow_sma[-1]
+        dec_trend = fast_sma[-1] < slow_sma[-1]
+
+        reward = self.risk*self.rr_ratio
+        self.exchange.sltp(profit_long=reward, profit_short=reward, stop_long=self.risk, stop_short=self.risk, round_decimals=self.price_decimal_num)
+
+        if inc_trend:
+            print('inc_trend detected')
+            while True:
+                if float(self.exchange.get_position()['notional']) > 0.0: # check if in long position
+                    print('long position opened')
+                    break
+                print('trying to open long position...')
+                self.exchange.entry("Long", True, lot)
+
+        if dec_trend:
+            print('dec_trend detected')
+            while True:
+                if float(self.exchange.get_position()['notional']) < 0.0: # check if in short position
+                    print('short position opened')
+                    break
+                print('trying to open short position...')
+                self.exchange.entry("Short", False, lot)
+
+
+        # OHLCV and indicator data, you can access history using list index        
+        # log indicator values 
+        print()
+        logger.info(f"fast_sma: {fast_sma[-1]}")
+        logger.info(f"slow_sma: {slow_sma[-1]}")
+        # log last candle OHLCV values
+        logger.info(f"open: {open[-1]}")
+        logger.info(f"high: {high[-1]}")
+        logger.info(f"low: {low[-1]}")
+        logger.info(f"close: {close[-1]}")
+        logger.info(f"volume: {volume[-1]}")
+        #second last candle OHLCV values
 
