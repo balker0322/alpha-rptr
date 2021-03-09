@@ -374,7 +374,7 @@ class SMA2(Bot):
     decimal_num = 3
     price_decimal_num = 2
     rr_ratio = 1.5
-    risk = 0.1
+    risk = 0.3
     
     def __init__(self):
         Bot.__init__(self, '1m')
@@ -395,23 +395,28 @@ class SMA2(Bot):
         reward = self.risk*self.rr_ratio
         self.exchange.sltp(profit_long=reward, profit_short=reward, stop_long=self.risk, stop_short=self.risk, round_decimals=self.price_decimal_num)
 
-        if inc_trend and float(self.exchange.get_position()['notional']) == 0.0:
-            print('inc_trend detected')
-            while True:
-                if float(self.exchange.get_position()['notional']) > 0.0: # check if in long position
-                    print('long position opened')
-                    break
-                print('trying to open long position...')
-                self.exchange.entry("Long", True, lot)
+        # if float(self.exchange.get_position()['notional']) == 0.0:
+        if self.exchange.get_position_size() == 0.0:
 
-        if dec_trend and float(self.exchange.get_position()['notional']) == 0.0:
-            print('dec_trend detected')
-            while True:
-                if float(self.exchange.get_position()['notional']) < 0.0: # check if in short position
-                    print('short position opened')
-                    break
-                print('trying to open short position...')
-                self.exchange.entry("Short", False, lot)
+            self.exchange.cancel_all()
+
+            if inc_trend:
+                print('inc_trend detected')
+                while True:
+                    if float(self.exchange.get_position()['notional']) > 0.0: # check if in long position
+                        print('long position opened')
+                        break
+                    print('trying to open long position...')
+                    self.exchange.entry("Long", True, lot)
+
+            if dec_trend:
+                print('dec_trend detected')
+                while True:
+                    if float(self.exchange.get_position()['notional']) < 0.0: # check if in short position
+                        print('short position opened')
+                        break
+                    print('trying to open short position...')
+                    self.exchange.entry("Short", False, lot)
 
 
         # OHLCV and indicator data, you can access history using list index        
@@ -427,3 +432,7 @@ class SMA2(Bot):
         logger.info(f"volume: {volume[-1]}")
         #second last candle OHLCV values
 
+class test_bot(Bot):
+    
+    def __init__(self):
+        Bot.__init__(self, '1m')
