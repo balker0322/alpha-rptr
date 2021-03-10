@@ -108,7 +108,7 @@ class SMA(Bot):
 # Rci
 class Rci(Bot):
     def __init__(self):
-        Bot.__init__(self, '5m')
+        Bot.__init__(self, '1m')
 
     def options(self):
         return {
@@ -119,6 +119,7 @@ class Rci(Bot):
 
     def strategy(self, open, close, high, low, volume):
         lot = self.exchange.get_lot()
+        lot = get_calc_lot(lot=lot, decimal_num=3, leverage=20.0, actual_leverage=3.0)
 
         itv_s = self.input('rcv_short_len', int, 5)
         itv_m = self.input('rcv_medium_len', int, 9)
@@ -383,14 +384,14 @@ class SMA2(Bot):
         
         lot = self.exchange.get_lot()
         lot = get_calc_lot(lot=lot, decimal_num=self.decimal_num, leverage=20.0, actual_leverage=3.0)
-        fast_len = self.input('fast_len', int, 9)
-        slow_len = self.input('slow_len', int, 16)
+        fast_len = self.input('fast_len', int, 4)
+        slow_len = self.input('slow_len', int, 8)
         fast_sma = sma(close, fast_len)
         slow_sma = sma(close, slow_len)
-        # golden_cross = crossover(fast_sma, slow_sma)
-        # dead_cross = crossunder(fast_sma, slow_sma)
-        inc_trend = fast_sma[-1] > slow_sma[-1]
-        dec_trend = fast_sma[-1] < slow_sma[-1]
+        golden_cross = crossover(fast_sma, slow_sma)
+        dead_cross = crossunder(fast_sma, slow_sma)
+        # inc_trend = fast_sma[-1] > slow_sma[-1]
+        # dec_trend = fast_sma[-1] < slow_sma[-1]
 
         reward = self.risk*self.rr_ratio
         self.exchange.sltp(profit_long=reward, profit_short=reward, stop_long=self.risk, stop_short=self.risk, round_decimals=self.price_decimal_num)
@@ -400,7 +401,7 @@ class SMA2(Bot):
 
             self.exchange.cancel_all()
 
-            if inc_trend:
+            if golden_cross:
                 print('inc_trend detected')
                 while True:
                     if float(self.exchange.get_position()['notional']) > 0.0: # check if in long position
@@ -409,7 +410,7 @@ class SMA2(Bot):
                     print('trying to open long position...')
                     self.exchange.entry("Long", True, lot)
 
-            if dec_trend:
+            if dead_cross:
                 print('dec_trend detected')
                 while True:
                     if float(self.exchange.get_position()['notional']) < 0.0: # check if in short position
